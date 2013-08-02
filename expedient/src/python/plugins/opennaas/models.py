@@ -12,8 +12,13 @@ class OpennaasAggregate(Aggregate):
     class Meta:
         verbose_name = "OpenNaas Aggregate"
 
-    test_field = models.TextField(default='only a test',
-                                  help_text='write what you want...',)
+    address = models.TextField(default='127.0.0.1',
+                               help_text='Address of the (OpenNaaS) Aggregate Manager',)
+
+    port = models.PositiveIntegerField(default='8001',
+                                       help_text='Port of the (OpenNaaS) Aggregate Manager',)
+
+    geni3c = None
 
     def start_slice(self, slice):
         super(OpennaasAggregate, self).start_slice(slice)
