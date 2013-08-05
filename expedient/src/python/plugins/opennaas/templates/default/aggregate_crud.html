@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Add/Update OpenNaas Aggregate.{% endblock title %}
+{% block title %}Add/Update OpenNaaS Aggregate.{% endblock title %}
 
 {% block head %}
 {% endblock %}
@@ -8,19 +8,19 @@
 {% block content %}
 <div class="main">
     {% if aggregate %}
-    <h1>Update aggregate {{ aggregate.name }}</h1>
+        <h1>Update an OpenNaaS aggregate {{ aggregate.name }}</h1>
     {% else %}
-    <h1>Add aggregate</h1>
+        <h1>Add an OpenNaaS aggregate</h1>
     {% endif %}
+
     <form method="post" action="">{% csrf_token %}
-        <table class="formtable_noborder">
-        {{ form.as_table }}
-        </table>
+        <table class="formtable_noborder">{{ form.as_table }}</table>
+
         <div class="center">
-            <input type="submit" value="Next" /> | 
+            <input type="submit" value="Create" /> |
             {% if aggregate %}
-            <a href="{% url aggregate_delete aggregate.pk %}">Delete</a> |
-            {% endif %} 
+                <a href="{% url aggregate_delete aggregate.pk %}">Delete</a> |
+            {% endif %}
             <a href="{% url home %}">Cancel</a>
         </div>
     </form>
