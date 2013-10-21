@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}List available resources of OpenNaaS Aggregate.{% endblock title %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+<div class="main">
+    {% if aggregate %}
+        <h1>Available resources of {{ aggregate.name }}</h1>
+    {% endif %}
+
+
+    {% if resources|length == 0 %}
+        <h2><strong>Resources not available!</strong></h2>
+    {% else %}
+        <table class="table listResources">
+                <thead>
+                <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>EndPoint</th>
+                        <th>Label</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for resource in resources %}
+                        <tr>
+                        <td>{{ resource.name }}</td>
+                        <td>{{ resource.type }}</td>
+                        <td>{{ resource.endpoint }}</td>
+                        <td>{{ resource.label }}</td>
+                        </tr>
+                {% endfor %}
+                </tbody>
+        </table>
+    {% endif %}
+
+    <form method="post" action="">{% csrf_token %}
+        <div class="center">
+            <a href="{% url home %}">Home</a>
+        </div>
+    </form>
+</div>
+{% endblock content %}

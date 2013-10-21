@@ -6,11 +6,11 @@ logger = logging.getLogger("opennaas-models")
 
 
 class OpennaasAggregate(Aggregate):
-    information = "An aggregate to manage OpenNaas resources"\
+    information = "An aggregate-plugin to manage OpenNaaS resources"\
         " For now, only Wonesys ROADMs devices are supported."
 
     class Meta:
-        verbose_name = "OpenNaas Aggregate"
+        verbose_name = "OpenNaaS Aggregate"
 
     address = models.TextField(default='127.0.0.1',
                                help_text='Address of the (OpenNaaS) Aggregate Manager',)
