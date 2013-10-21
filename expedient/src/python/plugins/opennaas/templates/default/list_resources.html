@@ -11,29 +11,33 @@
         <h1>Available resources of {{ aggregate.name }}</h1>
     {% endif %}
 
-
     {% if resources|length == 0 %}
         <h2><strong>Resources not available!</strong></h2>
     {% else %}
-        <table class="table listResources">
-                <thead>
+        <table border='1' summary='Information about available resources' width='100%'>
+            <caption>
+                <em>You can choose one of <b>{{ resource_len }}</b> resources</em>
+            </caption>
+            <thead>
                 <tr>
-                        <th>Name</th>
-                        <th>Type</th>
-                        <th>EndPoint</th>
-                        <th>Label</th>
+                    <th align='center'>Name</th>
+                    <th align='center'>Type</th>
+                    <th align='center'>EndPoint</th>
+                    <th align='center'>Label</th>
+                    <th align='center'>Available</th>
                 </tr>
-                </thead>
-                <tbody>
+            </thead>
+            <tbody>
                 {% for resource in resources %}
-                        <tr>
+                    <tr>
                         <td>{{ resource.name }}</td>
                         <td>{{ resource.type }}</td>
                         <td>{{ resource.endpoint }}</td>
                         <td>{{ resource.label }}</td>
-                        </tr>
+                        <td>{{ resource.available }}</td>
+                    </tr>
                 {% endfor %}
-                </tbody>
+            </tbody>
         </table>
     {% endif %}
 

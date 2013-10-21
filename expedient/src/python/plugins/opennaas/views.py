@@ -109,7 +109,8 @@ def list_resources(request, agg_id):
 
     if not errors:
         return simple.direct_to_template(request, "default/list_resources.html",
-                                         {'resources': resources, 'aggregate': aggreg_})
+                                         {'resources': resources, 'aggregate': aggreg_,
+                                          'resource_len': len(resources)})
 
     POST(errors, user=request.user, msg_type=DatedMessage.TYPE_ERROR,)
     return HttpResponseRedirect("/")
