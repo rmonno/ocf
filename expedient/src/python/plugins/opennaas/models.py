@@ -18,8 +18,6 @@ class OpennaasAggregate(Aggregate):
     port = models.PositiveIntegerField(default='8001',
                                        help_text='Port of the (OpenNaaS) Aggregate Manager',)
 
-    geni3c = None
-
     def start_slice(self, slice):
         super(OpennaasAggregate, self).start_slice(slice)
         logger.debug("Started slice")
