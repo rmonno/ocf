@@ -223,6 +223,9 @@ def allocate(request, slice_id, agg_id):
                 return simple.direct_to_template(request, "default/allocate_resources.html",
                                                  {'form': alloc_form_, 'slice': slice_,
                                                   'aggregate': opns_agg_})
+        else:
+            POST('AllocateForm is NOT valid!', user=request.user, msg_type=DatedMessage.TYPE_ERROR,)
+
     else:
         POST("%s Not Allowed method: %s" % (func_, request.method,),
              user=request.user, msg_type=DatedMessage.TYPE_ERROR,)
