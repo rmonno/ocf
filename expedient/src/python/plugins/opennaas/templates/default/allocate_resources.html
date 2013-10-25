@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Allocate resources of OpenNaaS Aggregate.{% endblock title %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+<div class="main">
+    <h1>Allocate resources in {{ slice.name }} using {{ aggregate.name }}</h1>
+
+    <form method="post" action="">{% csrf_token %}
+        <table class="formtable_noborder" width='100%'>{{ form.as_table }}</table>
+
+        <div class="center">
+            <input type="submit" value="Reserve" />
+            <a href="{% url home %}">Home</a>
+        </div>
+    </form>
+
+</div>
+{% endblock content %}

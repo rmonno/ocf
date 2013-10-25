@@ -7,8 +7,10 @@ from expedient.common.messaging.models import DatedMessage
 from expedient.common.permissions.shortcuts import give_permission_to
 from expedient.common.utils.plugins.resources.node import Node
 from expedient.common.utils.plugins.resources.link import Link
+from expedient.clearinghouse.slice.models import Slice
 
 from opennaas.models import OpennaasAggregate
+from opennaas.forms import AllocateForm
 import opennaas.geniv3 as gv3
 
 import logging
@@ -34,7 +36,7 @@ def verify_connectivity(address, port):
                    (geni3c_.errorCode(resp_), geni3c_.errorMessage(resp_),)
 
     except Exception as e:
-        return "Unable to contact the (OpenNaaS) AM: %s" % (e,)
+        return "(OpenNaaS) AM exception: %s" % (e,)
 
     return None
 
@@ -56,7 +58,7 @@ def list_available_resources(address, port):
             resources_ = gv3.decode_list_resources(resp_.get('value'))
 
     except Exception as e:
-        err_ = "Unable to contact the (OpenNaaS) AM: %s" % (e,)
+        err_ = "(OpenNaaS) AM exception: %s" % (e,)
 
     return err_, resources_
 
@@ -79,9 +81,32 @@ def status_resources(address, port, slice_name):
             resources_ = gv3.decode_status_resources(resp_.get('value').get('geni_urn'))
 
     except Exception as e:
-        err_ = "Unable to contact the (OpenNaaS) AM: %s" % (e,)
+        err_ = "(OpenNaaS) AM exception: %s" % (e,)
 
     return err_, resources_
+
+
+def allocate_resource(address, port, slice_name, info):
+    func_ = allocate_resource.__name__
+    logger.debug("%s address=%s, port=%s, slice=%s, info=%s" %\
+                 (func_, address, port, slice_name, info,))
+
+    geni3c_ = gv3.GENI3Client(address, port)
+    logger.debug("%s Geniv3Client successfully init" % (func_,))
+
+    err_ = None
+    try:
+        urn_ = create_urn_from_slice_name(slice_name)
+        resp_ = geni3c_.allocate(slice_urn=urn_, credentials=[gv3.TEST_CREDENTIAL],
+                                 rspec=gv3.encode_allocate_resource(info))
+        if geni3c_.isError(resp_):
+            err_ = "(OpenNaaS) AM error [%d]: %s" %\
+                   (geni3c_.errorCode(resp_), geni3c_.errorMessage(resp_),)
+
+    except Exception as e:
+        err_ = "(OpenNaaS) AM exception: %s" % (e,)
+
+    return err_
 
 
 def aggregate_crud(request, agg_id=None):
@@ -143,6 +168,81 @@ def list_resources(request, agg_id):
                                           'resource_len': len(resources)})
 
     POST(errors, user=request.user, msg_type=DatedMessage.TYPE_ERROR,)
+    return HttpResponseRedirect("/")
+
+
+def describe(request, slice_id, agg_id):
+    func_ = describe.__name__
+    logger.debug("%s method=%s, slice=%s, agg=%s" % (func_, request.method, slice_id, agg_id,))
+
+    slice_ = get_object_or_404(Slice, id=slice_id)
+    opns_agg_ = get_object_or_404(OpennaasAggregate, id=agg_id)
+    errors, resources = status_resources(opns_agg_.address, opns_agg_.port, slice_.name)
+
+    logger.debug("%s errors=%s, resources=%s" % (func_, errors, resources,))
+
+    if not errors:
+        return simple.direct_to_template(request, "default/describe_resources.html",
+                                         {'resources': resources, 'aggregate': opns_agg_,
+                                          'resource_len': len(resources), 'slice': slice_,
+                                          'back': "/slice/detail/%s" % slice_.id})
+
+    POST(errors, user=request.user, msg_type=DatedMessage.TYPE_ERROR,)
+    return HttpResponseRedirect("/")
+
+
+def allocate(request, slice_id, agg_id):
+    func_ = allocate.__name__
+    logger.debug("%s method=%s, slice=%s, agg=%s" % (func_, request.method, slice_id, agg_id,))
+
+    slice_ = get_object_or_404(Slice, id=slice_id)
+    opns_agg_ = get_object_or_404(OpennaasAggregate, id=agg_id)
+
+    if request.method == 'GET':
+        alloc_form_ = AllocateForm()
+        return simple.direct_to_template(request, "default/allocate_resources.html",
+                                         {'form': alloc_form_, 'slice': slice_,
+                                          'aggregate': opns_agg_})
+    elif request.method == 'POST':
+        alloc_form_ = AllocateForm(data=request.POST)
+        if alloc_form_.is_valid():
+            info_ = {'name': alloc_form_.cleaned_data['name'],
+                     'type': alloc_form_.cleaned_data['type'],
+                     'in_ep': alloc_form_.cleaned_data['ingress_endpoint'],
+                     'in_lab': alloc_form_.cleaned_data['ingress_label'],
+                     'out_ep': alloc_form_.cleaned_data['egress_endpoint'],
+                     'out_lab': alloc_form_.cleaned_data['egress_label']}
+            errors = allocate_resource(opns_agg_.address, opns_agg_.port, slice_.name, info_)
+            if not errors:
+                POST("Successfully allocated the resource",
+                     user=request.user, msg_type=DatedMessage.TYPE_SUCCESS,)
+                return HttpResponseRedirect("/slice/detail/%s" % slice_.id)
+
+            else:
+                POST(errors, user=request.user, msg_type=DatedMessage.TYPE_ERROR,)
+                return simple.direct_to_template(request, "default/allocate_resources.html",
+                                                 {'form': alloc_form_, 'slice': slice_,
+                                                  'aggregate': opns_agg_})
+    else:
+        POST("%s Not Allowed method: %s" % (func_, request.method,),
+             user=request.user, msg_type=DatedMessage.TYPE_ERROR,)
+
+    return HttpResponseRedirect("/")
+
+
+def delete(request):
+    func_ = delete.__name__
+    logger.debug("%s method=%s" % (func_, request.method,))
+
+    POST('Not implemented yet!', user=request.user, msg_type=DatedMessage.TYPE_ERROR,)
+    return HttpResponseRedirect("/")
+
+
+def renew(request):
+    func_ = renew.__name__
+    logger.debug("%s method=%s" % (func_, request.method,))
+
+    POST('Not implemented yet!', user=request.user, msg_type=DatedMessage.TYPE_ERROR,)
     return HttpResponseRedirect("/")
 
 

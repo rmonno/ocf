@@ -1,9 +1,10 @@
 from django import forms
 
 
-# you can use form and formset_factory utility (with 'initial' values)
-# & use {{ form.as_table }} in your template
-
-
-class RoadmResource(forms.Form):
+class AllocateForm(forms.Form):
     name = forms.CharField(max_length=100)
+    type = forms.CharField(max_length=20, initial='roadm')
+    ingress_endpoint = forms.CharField(max_length=20)
+    ingress_label = forms.CharField(max_length=20)
+    egress_endpoint = forms.CharField(max_length=20)
+    egress_label = forms.CharField(max_length=20)
