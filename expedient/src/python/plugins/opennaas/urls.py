@@ -7,6 +7,6 @@ urlpatterns = patterns('opennaas.views',
 
     url(r'opennaas/describe/(?P<slice_id>\d+)/(?P<agg_id>\d+)/$', 'describe', name='describe'),
     url(r'^opennaas/allocate/(?P<slice_id>\d+)/(?P<agg_id>\d+)/$', 'allocate', name='allocate'),
-    url(r'^opennaas/delete/$', 'delete', name='delete'),
+    url(r'^opennaas/delete/(?P<slice_id>\d+)/(?P<agg_id>\d+)/$', 'delete', name='delete'),
     url(r'^opennaas/renew/$', 'renew', name='renew'),
 )

@@ -19,7 +19,7 @@
                         <td>
                             <a href="{% url describe slice.id agg.id %}">Describe</a> |
                             <a href="{% url allocate slice.id agg.id %}">Allocate</a> |
-                            <a href="{% url delete %}">Delete</a> |
+                            <a href="{% url delete slice.id agg.id %}">Delete</a> |
                             <a href="{% url renew %}">Renew</a>
                         </td>
                     </tr>

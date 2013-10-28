@@ -109,6 +109,28 @@ def allocate_resource(address, port, slice_name, info):
     return err_
 
 
+def delete_slice(address, port, slice_name):
+    func_ = delete_slice.__name__
+    logger.debug("%s address=%s, port=%s, slice=%s" %\
+                 (func_, address, port, slice_name,))
+
+    geni3c_ = gv3.GENI3Client(address, port)
+    logger.debug("%s Geniv3Client successfully init" % (func_,))
+
+    err_ = None
+    try:
+        urn_ = create_urn_from_slice_name(slice_name)
+        resp_ = geni3c_.delete(urns=[urn_], credentials=[gv3.TEST_CREDENTIAL])
+        if geni3c_.isError(resp_):
+            err_ = "(OpenNaaS) AM error [%d]: %s" %\
+                   (geni3c_.errorCode(resp_), geni3c_.errorMessage(resp_),)
+
+    except Exception as e:
+        err_ = "(OpenNaaS) AM exception: %s" % (e,)
+
+    return err_
+
+
 def aggregate_crud(request, agg_id=None):
     func_ = aggregate_crud.__name__
     logger.debug("%s method=%s, id=%s" % (func_, request.method, agg_id,))
@@ -233,11 +255,20 @@ def allocate(request, slice_id, agg_id):
     return HttpResponseRedirect("/")
 
 
-def delete(request):
+def delete(request, slice_id, agg_id):
     func_ = delete.__name__
-    logger.debug("%s method=%s" % (func_, request.method,))
+    logger.debug("%s method=%s, slice=%s, agg=%s" % (func_, request.method, slice_id, agg_id,))
 
-    POST('Not implemented yet!', user=request.user, msg_type=DatedMessage.TYPE_ERROR,)
+    slice_ = get_object_or_404(Slice, id=slice_id)
+    opns_agg_ = get_object_or_404(OpennaasAggregate, id=agg_id)
+
+    errors = delete_slice(opns_agg_.address, opns_agg_.port, slice_.name)
+    if not errors:
+        POST("Successfully deleted all resources belonging to %s" % slice_.name,
+             user=request.user, msg_type=DatedMessage.TYPE_SUCCESS,)
+        return HttpResponseRedirect("/slice/detail/%s" % slice_.id)
+
+    POST(errors, user=request.user, msg_type=DatedMessage.TYPE_ERROR,)
     return HttpResponseRedirect("/")
 
 
