@@ -11,124 +11,12 @@ from expedient.clearinghouse.slice.models import Slice
 
 from opennaas.models import OpennaasAggregate
 from opennaas.forms import AllocateForm
-import opennaas.geniv3 as gv3
+import opennaas.geniv3_commands as gv3_cmds
 
 import logging
 logger = logging.getLogger("opennaas-views")
 
 POST = DatedMessage.objects.post_message_to_user
-
-
-def create_urn_from_slice_name(sname):
-    return 'urn:publicid:IDN+geni:gpo:gcf+slice+' + str(sname)
-
-
-def verify_connectivity(address, port):
-    func_ = verify_connectivity.__name__
-    logger.debug("%s address=%s, port=%s" % (func_, address, port,))
-
-    geni3c_ = gv3.GENI3Client(address, port)
-    logger.debug("%s Geniv3Client successfully init" % (func_,))
-    try:
-        resp_ = geni3c_.getVersion()
-        if geni3c_.isError(resp_):
-            return "(OpenNaaS) AM error [%d]: %s" %\
-                   (geni3c_.errorCode(resp_), geni3c_.errorMessage(resp_),)
-
-    except Exception as e:
-        return "(OpenNaaS) AM exception: %s" % (e,)
-
-    return None
-
-
-def list_available_resources(address, port):
-    func_ = list_available_resources.__name__
-    logger.debug("%s address=%s, port=%s" % (func_, address, port,))
-
-    geni3c_ = gv3.GENI3Client(address, port)
-    logger.debug("%s Geniv3Client successfully init" % (func_,))
-
-    err_, resources_ = None, []
-    try:
-        resp_ = geni3c_.listResources(credentials=[gv3.TEST_CREDENTIAL], available=True)
-        if geni3c_.isError(resp_):
-            err_ = "(OpenNaaS) AM error [%d]: %s" %\
-                   (geni3c_.errorCode(resp_), geni3c_.errorMessage(resp_),)
-        else:
-            resources_ = gv3.decode_list_resources(resp_.get('value'))
-
-    except Exception as e:
-        err_ = "(OpenNaaS) AM exception: %s" % (e,)
-
-    return err_, resources_
-
-
-def status_resources(address, port, slice_name):
-    func_ = status_resources.__name__
-    logger.debug("%s address=%s, port=%s, slice=%s" % (func_, address, port, slice_name))
-
-    geni3c_ = gv3.GENI3Client(address, port)
-    logger.debug("%s Geniv3Client successfully init" % (func_,))
-
-    err_, resources_ = None, []
-    try:
-        urn_ = create_urn_from_slice_name(slice_name)
-        resp_ = geni3c_.status(urns=[urn_], credentials=[gv3.TEST_CREDENTIAL])
-        if geni3c_.isError(resp_):
-            err_ = "(OpenNaaS) AM error [%d]: %s" %\
-                   (geni3c_.errorCode(resp_), geni3c_.errorMessage(resp_),)
-        else:
-            resources_ = gv3.decode_status_resources(resp_.get('value').get('geni_urn'))
-
-    except Exception as e:
-        err_ = "(OpenNaaS) AM exception: %s" % (e,)
-
-    return err_, resources_
-
-
-def allocate_resource(address, port, slice_name, info):
-    func_ = allocate_resource.__name__
-    logger.debug("%s address=%s, port=%s, slice=%s, info=%s" %\
-                 (func_, address, port, slice_name, info,))
-
-    geni3c_ = gv3.GENI3Client(address, port)
-    logger.debug("%s Geniv3Client successfully init" % (func_,))
-
-    err_ = None
-    try:
-        urn_ = create_urn_from_slice_name(slice_name)
-        resp_ = geni3c_.allocate(slice_urn=urn_, credentials=[gv3.TEST_CREDENTIAL],
-                                 rspec=gv3.encode_allocate_resource(info))
-        if geni3c_.isError(resp_):
-            err_ = "(OpenNaaS) AM error [%d]: %s" %\
-                   (geni3c_.errorCode(resp_), geni3c_.errorMessage(resp_),)
-
-    except Exception as e:
-        err_ = "(OpenNaaS) AM exception: %s" % (e,)
-
-    return err_
-
-
-def delete_slice(address, port, slice_name):
-    func_ = delete_slice.__name__
-    logger.debug("%s address=%s, port=%s, slice=%s" %\
-                 (func_, address, port, slice_name,))
-
-    geni3c_ = gv3.GENI3Client(address, port)
-    logger.debug("%s Geniv3Client successfully init" % (func_,))
-
-    err_ = None
-    try:
-        urn_ = create_urn_from_slice_name(slice_name)
-        resp_ = geni3c_.delete(urns=[urn_], credentials=[gv3.TEST_CREDENTIAL])
-        if geni3c_.isError(resp_):
-            err_ = "(OpenNaaS) AM error [%d]: %s" %\
-                   (geni3c_.errorCode(resp_), geni3c_.errorMessage(resp_),)
-
-    except Exception as e:
-        err_ = "(OpenNaaS) AM exception: %s" % (e,)
-
-    return err_
 
 
 def aggregate_crud(request, agg_id=None):
@@ -153,7 +41,7 @@ def aggregate_crud(request, agg_id=None):
             info_ = agg_form_.save(commit=False)
             logger.debug("%s info=%s" % (func_, info_,))
 
-            errors = verify_connectivity(info_.address, info_.port)
+            errors = gv3_cmds.verify_connectivity(info_.address, info_.port)
             if not errors:
                 info_.save()
                 agg_form_.save_m2m()
@@ -180,7 +68,7 @@ def list_resources(request, agg_id):
     logger.debug("%s method=%s, id=%s" % (func_, request.method, agg_id,))
 
     aggreg_ = get_object_or_404(OpennaasAggregate, id=agg_id)
-    errors, resources = list_available_resources(aggreg_.address, aggreg_.port)
+    errors, resources = gv3_cmds.list_available_resources(aggreg_.address, aggreg_.port)
 
     logger.debug("%s errors=%s, resources=%s" % (func_, errors, resources,))
 
@@ -199,7 +87,7 @@ def describe(request, slice_id, agg_id):
 
     slice_ = get_object_or_404(Slice, id=slice_id)
     opns_agg_ = get_object_or_404(OpennaasAggregate, id=agg_id)
-    errors, resources = status_resources(opns_agg_.address, opns_agg_.port, slice_.name)
+    errors, resources = gv3_cmds.status_resources(opns_agg_.address, opns_agg_.port, slice_.name)
 
     logger.debug("%s errors=%s, resources=%s" % (func_, errors, resources,))
 
@@ -234,7 +122,8 @@ def allocate(request, slice_id, agg_id):
                      'in_lab': alloc_form_.cleaned_data['ingress_label'],
                      'out_ep': alloc_form_.cleaned_data['egress_endpoint'],
                      'out_lab': alloc_form_.cleaned_data['egress_label']}
-            errors = allocate_resource(opns_agg_.address, opns_agg_.port, slice_.name, info_)
+            errors = gv3_cmds.allocate_resource(opns_agg_.address, opns_agg_.port,
+                                                slice_.name, info_)
             if not errors:
                 POST("Successfully allocated the resource",
                      user=request.user, msg_type=DatedMessage.TYPE_SUCCESS,)
@@ -262,7 +151,7 @@ def delete(request, slice_id, agg_id):
     slice_ = get_object_or_404(Slice, id=slice_id)
     opns_agg_ = get_object_or_404(OpennaasAggregate, id=agg_id)
 
-    errors = delete_slice(opns_agg_.address, opns_agg_.port, slice_.name)
+    errors = gv3_cmds.delete_slice(opns_agg_.address, opns_agg_.port, slice_.name)
     if not errors:
         POST("Successfully deleted all resources belonging to %s" % slice_.name,
              user=request.user, msg_type=DatedMessage.TYPE_SUCCESS,)
@@ -302,7 +191,7 @@ def get_ui_data(slice):
 
     for aggreg_ in get_opennaas_roadm_aggregates(slice):
         opns_agg_ = get_object_or_404(OpennaasAggregate, id=aggreg_.pk)
-        errors, resources = status_resources(opns_agg_.address, opns_agg_.port, slice.name)
+        errors, resources = gv3_cmds.status_resources(opns_agg_.address, opns_agg_.port, slice.name)
 
         logger.debug("%s errors=%s, resources=%s" % (func_, errors, resources,))
 
