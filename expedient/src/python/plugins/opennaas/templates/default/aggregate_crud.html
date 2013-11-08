@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Create/Update OpenNaaS Aggregate.{% endblock title %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+<div class="main">
+    {% if aggregate %}
+        <h1>Update an OpenNaaS aggregate {{ aggregate.name }}</h1>
+    {% else %}
+        <h1>Create an OpenNaaS aggregate</h1>
+    {% endif %}
+
+    <form method="post" action="">{% csrf_token %}
+        <table class="formtable_noborder">{{ form.as_table }}</table>
+
+        <div class="center">
+            {% if aggregate %}
+                <input type="button" value="ListResources" onclick="document.location='{% url list_resources aggregate.pk %}'"/>
+                <input type="submit" value="Update" />
+                <input type="button" value="Delete" onclick="document.location='{% url aggregate_delete aggregate.pk %}'"/>
+            {% else %}
+                <input type="submit" value="Create" />
+            {% endif %}
+            <a href="{% url home %}">Home</a>
+        </div>
+    </form>
+</div>
+{% endblock content %}
