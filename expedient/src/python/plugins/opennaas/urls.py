@@ -4,6 +4,7 @@ urlpatterns = patterns('opennaas.views',
     url(r'^aggregate/create/$', 'aggregate_crud', name='opennaas_aggregate_create'),
     url(r'^aggregate/(?P<agg_id>\d+)/edit/$', 'aggregate_crud', name='opennaas_aggregate_edit'),
     url(r'^aggregate/(?P<agg_id>\d+)/list_resources/$', 'list_resources', name='list_resources'),
+    url(r'^aggregate/(?P<agg_id>\d+)/list_labels/(?P<name>\w+)/(?P<type>\w+)/(?P<endpoint>[0-9\-]+)/$', 'list_labels', name='list_labels'),
 
     url(r'opennaas/describe/(?P<slice_id>\d+)/(?P<agg_id>\d+)/$', 'describe', name='describe'),
     url(r'^opennaas/allocate/(?P<slice_id>\d+)/(?P<agg_id>\d+)/$', 'allocate', name='allocate'),

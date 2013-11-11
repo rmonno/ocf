@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}List available resources of OpenNaaS Aggregate.{% endblock title %}
+{% block title %}List available labels of OpenNaaS Aggregate.{% endblock title %}
 
 {% block head %}
 {% endblock %}
@@ -8,21 +8,23 @@
 {% block content %}
 <div class="main">
     {% if aggregate %}
-        <h1>Available resources of {{ aggregate.name }}</h1>
+        <h1>Available labels of {{ aggregate.name }}</h1>
     {% endif %}
 
     {% if resources|length == 0 %}
-        <h2><strong>Resources not available!</strong></h2>
+        <h2><strong>Labels not available!</strong></h2>
     {% else %}
-        <table border='1' summary='Information about available resources' width='100%'>
+        <table border='1' summary='Information about available labels' width='100%'>
             <caption>
-                <em>You can choose one of <b>{{ resource_len }}</b> resources</em>
+                <em>You can choose one of <b>{{ resource_len }}</b> labels</em>
             </caption>
             <thead>
                 <tr>
                     <th align='center'>Name</th>
                     <th align='center'>Type</th>
                     <th align='center'>EndPoint</th>
+                    <th align='center'>Label</th>
+                    <th align='center'>Available</th>
                 </tr>
             </thead>
             <tbody>
@@ -30,7 +32,9 @@
                     <tr>
                         <td>{{ resource.name }}</td>
                         <td>{{ resource.type }}</td>
-                        <td><a href="{% url list_labels aggregate.id resource.name resource.type resource.endpoint %}">{{ resource.endpoint }}</a></td>
+                        <td>{{ resource.endpoint }}</td>
+                        <td>{{ resource.label }}</td>
+                        <td>{{ resource.available }}</td>
                     </tr>
                 {% endfor %}
             </tbody>

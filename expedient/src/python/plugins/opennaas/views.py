@@ -73,9 +73,40 @@ def list_resources(request, agg_id):
     logger.debug("%s errors=%s, resources=%s" % (func_, errors, resources,))
 
     if not errors:
+        set_ = set()
+        [set_.add((r_['name'], r_['type'], r_['endpoint'],)) for r_ in resources]
+
+        logger.debug("%s set=%s" % (func_, set_,))
+
+        resources_ = [{'name': r_[0], 'type': r_[1], 'endpoint': r_[2]} for r_ in set_]
+
         return simple.direct_to_template(request, "default/list_resources.html",
-                                         {'resources': resources, 'aggregate': aggreg_,
+                                         {'resources': resources_, 'aggregate': aggreg_,
                                           'resource_len': len(resources)})
+
+    POST(errors, user=request.user, msg_type=DatedMessage.TYPE_ERROR,)
+    return HttpResponseRedirect("/")
+
+
+def list_labels(request, agg_id, name, type, endpoint):
+    func_ = list_labels.__name__
+    logger.debug("%s method=%s, id=%s, name=%s, type=%s, endpoint=%s" %\
+                 (func_, request.method, agg_id, name, type, endpoint,))
+
+    aggreg_ = get_object_or_404(OpennaasAggregate, id=agg_id)
+    errors, resources = gv3_cmds.list_available_resources(aggreg_.address, aggreg_.port)
+
+    logger.debug("%s errors=%s, resources=%s" % (func_, errors, resources,))
+
+    if not errors:
+        labels_ = [r_ for r_ in resources\
+                   if r_['name'] == name and r_['type'] == type and r_['endpoint'] == endpoint]
+
+        logger.debug("%s labels=%s" % (func_, labels_,))
+
+        return simple.direct_to_template(request, "default/list_labels.html",
+                                         {'resources': labels_, 'aggregate': aggreg_,
+                                          'resource_len': len(labels_)})
 
     POST(errors, user=request.user, msg_type=DatedMessage.TYPE_ERROR,)
     return HttpResponseRedirect("/")
