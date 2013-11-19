@@ -1,0 +1,34 @@
+{% block content %}
+    {% if slice %}
+        <table border='3' summary='Available operations on OpenNaaS ROADMs resources' width='100%'>
+            <caption>
+                <em>Available operations on Slice <b>{{ slice.name }}</b></em>
+            </caption>
+            <thead>
+                <tr>
+                    <th align='center'>ID</th>
+                    <th align='center'>Name</th>
+                    <th align='center'>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for agg in slice.aggregates %}
+                    <tr>
+                        <td>{{ agg.id }}</td>
+                        <td>{{ agg.name }}</td>
+                        <td>
+                            <a href="{% url describe slice.id agg.id %}">Describe</a> |
+                            <a href="{% url allocate slice.id agg.id %}">Allocate</a> |
+                            <a href="{% url delete slice.id agg.id %}">Delete</a> |
+                            <a href="{% url renew %}">Renew</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    {% else %}
+        <h2><strong>Ehm: no slice here?</strong></h3>
+    {% endif %}
+
+{% endblock content %}

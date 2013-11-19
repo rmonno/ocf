@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}List available labels of OpenNaaS Aggregate.{% endblock title %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+<div class="main">
+    {% if aggregate %}
+        <h1>Available labels of {{ aggregate.name }}</h1>
+    {% endif %}
+
+    {% if resources|length == 0 %}
+        <h2><strong>Labels not available!</strong></h2>
+    {% else %}
+        <table border='1' summary='Information about available labels' width='100%'>
+            <caption>
+                <em>You can choose one of <b>{{ resource_len }}</b> labels</em>
+            </caption>
+            <thead>
+                <tr>
+                    <th align='center'>Name</th>
+                    <th align='center'>Type</th>
+                    <th align='center'>EndPoint</th>
+                    <th align='center'>Label</th>
+                    <th align='center'>Available</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for resource in resources %}
+                    <tr>
+                        <td>{{ resource.name }}</td>
+                        <td>{{ resource.type }}</td>
+                        <td>{{ resource.endpoint }}</td>
+                        <td>{{ resource.label }}</td>
+                        <td>{{ resource.available }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    <form method="post" action="">{% csrf_token %}
+        <div class="center">
+            <a href="{% url home %}">Home</a>
+        </div>
+    </form>
+</div>
+{% endblock content %}
